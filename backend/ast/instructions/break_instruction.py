@@ -24,6 +24,8 @@ class BreakInstruction(Node):
     def inside_loop(self, environment):
         current = environment
         while current is not None:
+            if current.name == "main" or current.name.startswith("function:"):
+                return False
             if current.name == "loop" or current.name == "while":
                 return True
             if current.name.startswith("loop:") or current.name.startswith("while:"):
@@ -35,6 +37,8 @@ class BreakInstruction(Node):
     def label_exists(self, environment):
         current = environment
         while current is not None:
+            if current.name == "main" or current.name.startswith("function:"):
+                return False
             if current.name == "loop:" + self.label or current.name == "while:" + self.label:
                 return True
             current = current.parent

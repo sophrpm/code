@@ -40,7 +40,7 @@ class PrintInstruction(Node):
                 return Result.normal()
             result = result.replace("{}", self.format_value(value), 1)
 
-        print(result)
+        environment.write_console(result)
         return Result.normal()
 
     # Convierte valor para impresion
@@ -56,7 +56,10 @@ class PrintInstruction(Node):
         if isinstance(value, list):
             values = []
             for item in value:
-                values.append(self.format_value(item))
+                if isinstance(item, str):
+                    values.append('"' + item.replace('"', '\\"') + '"')
+                else:
+                    values.append(self.format_value(item))
             return "[" + ", ".join(values) + "]"
 
         if Types.is_slice_value(value):

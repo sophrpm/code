@@ -25,18 +25,32 @@ class MatchInstruction(Node):
         default_arm = None
         default_count = 0
 
-        for arm in self.arms:
+        # Valida todos los brazos antes de seleccionar uno
+        for index in range(len(self.arms)):
+            arm = self.arms[index]
             if arm["default"]:
                 default_count += 1
-                if default_arm is None:
-                    default_arm = arm
+                default_arm = arm
+                if index != len(self.arms) - 1:
+                    self.report_error(environment, "El caso comodin _ debe ser el ultimo caso del match")
+                continue
+
+            pattern_type = arm["pattern"].get_type(environment)
+            if not self.compatible_types(expression_type, pattern_type):
+                self.report_error(environment, f"Patron de match incompatible: se esperaba '{expression_type}' y se recibio '{pattern_type}'")
+
+        if default_count > 1:
+            self.report_error(environment, "La sentencia match solo puede tener un caso comodin")
+            return Result.normal()
+
+        for arm in self.arms:
+            if arm["default"]:
                 continue
 
             pattern = arm["pattern"]
             pattern_type = pattern.get_type(environment)
 
             if not self.compatible_types(expression_type, pattern_type):
-                self.report_error(environment, f"Patron de match incompatible: se esperaba '{expression_type}' y se recibio '{pattern_type}'")
                 continue
 
             pattern_value = pattern.evaluate(environment)
@@ -46,10 +60,6 @@ class MatchInstruction(Node):
                 if result is None:
                     return Result.normal()
                 return result
-
-        if default_count > 1:
-            self.report_error(environment, "La sentencia match solo puede tener un caso comodin")
-            return Result.normal()
 
         if default_arm is not None:
             local_environment = environment.create_child("match")
