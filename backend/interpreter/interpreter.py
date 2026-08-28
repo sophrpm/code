@@ -184,10 +184,23 @@ class Interpreter:
                     "struct_name": symbol.struct_name,
                     "scope": environment.name,
                     "line": symbol.line,
-                    "column": symbol.column
+                    "column": symbol.column,
+                    "value": self.format_symbol_value(symbol.value)
                 })
 
         return result
+
+
+    #valor legible para reporte
+    def format_symbol_value(self, value):
+
+        if hasattr(value, "name") and value.__class__.__name__ == "FunctionDeclaration":
+            return "funcion"
+        if hasattr(value, "instructions") and value.__class__.__name__ == "MainFunction":
+            return "funcion principal"
+        if isinstance(value, dict) and "fields" in value:
+            return value.get("struct_name", "struct")
+        return str(value)
 
 
     #errores
@@ -205,3 +218,9 @@ class Interpreter:
     def get_error_count(self):
 
         return self.error_manager.count()
+
+
+    #salida producida por println
+    def get_console(self):
+
+        return self.global_environment.console

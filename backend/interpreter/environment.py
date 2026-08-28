@@ -1,6 +1,6 @@
 class Environment:
 
-    def __init__(self, parent=None, name="global", error_manager=None, history=None):
+    def __init__(self, parent=None, name="global", error_manager=None, history=None, console=None):
         self.parent = parent
         self.name = name
         self.symbols = []
@@ -21,6 +21,13 @@ class Environment:
             self.history = []
 
         self.history.append(self)
+
+        if console is not None:
+            self.console = console
+        elif parent is not None:
+            self.console = parent.console
+        else:
+            self.console = []
 
 
     #simbolo en entorno actual
@@ -115,7 +122,7 @@ class Environment:
     #entorno hijo
     def create_child(self, name="scope"):
 
-        child = Environment(self, name, self.error_manager, self.history)
+        child = Environment(self, name, self.error_manager, self.history, self.console)
         self.children.append(child)
         return child
 
@@ -127,3 +134,9 @@ class Environment:
             return
 
         self.error_manager.semantic(description, line, column, fragment)
+
+
+    # Agrega una linea a la consola de la ejecucion
+    def write_console(self, value):
+
+        self.console.append(str(value))
