@@ -1,0 +1,20 @@
+test_api_native (test_integration.IntegrationTests.test_api_native) ... ok
+test_api_validation (test_integration.IntegrationTests.test_api_validation) ... ok
+test_concurrent_analysis (test_integration.IntegrationTests.test_concurrent_analysis) ... ok
+test_interpreter_integral (test_integration.IntegrationTests.test_interpreter_integral) ... ok
+test_missing_tools (test_integration.IntegrationTests.test_missing_tools) ... ok
+test_native_never_calls_interpreter (test_integration.IntegrationTests.test_native_never_calls_interpreter) ... ok
+test_reports (test_integration.IntegrationTests.test_reports) ... ok
+test_output_limit (test_native.NativeTests.test_output_limit) ... ok
+test_runtime_errors (test_native.NativeTests.test_runtime_errors) ... ok
+test_stack_arguments (test_native.NativeTests.test_stack_arguments) ... ok
+test_timeout (test_native.NativeTests.test_timeout) ... ok
+test_valid_programs (test_native.NativeTests.test_valid_programs) ... ok
+test_error_accumulation (test_native.SemanticTests.test_error_accumulation) ... ok
+test_negative_programs (test_native.SemanticTests.test_negative_programs) ... ok
+test_short_circuit_checks_rhs (test_native.SemanticTests.test_short_circuit_checks_rhs) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 17.467s
+
+OK

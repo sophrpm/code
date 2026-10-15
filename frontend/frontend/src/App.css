@@ -24,3 +24,11 @@ table { width: 100%; border-collapse: collapse; font-size: 12px; }th, td { borde
 .report-links, .report-footer { display: flex; gap: 8px; }.report-links a, .report-footer a { padding: 5px 8px; font-size: 12px; }.dot-preview { color: #93aac6; white-space: pre-wrap; }
 .report-footer { height: 45px; align-items: center; padding: 0 12px; border-top: 1px solid #273a58; }
 @media (max-width: 900px) { .toolbar { flex-wrap: wrap; }.actions { order: 3; flex-basis: 100%; flex-wrap: wrap; }.bottom-grid { grid-template-columns: 1fr; }.reports-panel { border-left: 1px solid #273a58; }.editor-wrap { height: 45vh; } }
+
+.source-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.assembly-panel { min-width: 0; border: 1px solid #273a58; background: #0c1526; }
+.assembly { height: 48vh; min-height: 330px; overflow: auto; margin: 0; padding: 16px; text-align: left; color: #b4d7fb; }
+.timings { padding: 10px 14px; background: #142139; color: #94a8c1; font-size: 12px; }
+select { background: #1a2941; color: #c9d6e8; border: 1px solid #324764; border-radius: 7px; }
+.editor-panel { min-width: 0; }
+@media (max-width: 900px) { .source-grid { grid-template-columns: 1fr; } }

@@ -3,11 +3,11 @@ import './App.css'
 
 type OxigenError = { type: string; description: string; line: number; column: number; fragment?: string }
 type SymbolInfo = { name: string; kind: string; data_type: string; scope: string; line: number; value: string }
-type Execution = { success: boolean; console: string[]; errors: OxigenError[]; symbols: SymbolInfo[]; ast: string }
+type Execution = { success: boolean; console: string[]; errors: OxigenError[]; symbols: SymbolInfo[]; ast: string; assembly?: string; compilation_time?: number; build_time?: number; execution_time?: number; exit_code?: number }
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:2611'
 const initialCode = `fn main() {
-    println!("Hola desde OxigenScript");
+    println!("Hola desde OxigenNative");
 }
 `
 
@@ -17,6 +17,7 @@ function App() {
   const [result, setResult] = useState<Execution>({ success: true, console: [], errors: [], symbols: [], ast: '' })
   const [backendStatus, setBackendStatus] = useState('verificando')
   const [activeReport, setActiveReport] = useState<'errors' | 'symbols' | 'ast'>('errors')
+  const [mode, setMode] = useState<'native' | 'interpreter'>('native')
   const [running, setRunning] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
 
@@ -49,10 +50,10 @@ function App() {
     URL.revokeObjectURL(link.href)
   }
 
-  const execute = async () => {
+  const execute = async (run = true) => {
     setRunning(true)
     try {
-      const response = await fetch(`${apiUrl}/api/execute`, {
+      const response = await fetch(`${apiUrl}/api/${mode === 'interpreter' ? 'interpret' : run ? 'execute' : 'compile'}`,  {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ source }),
@@ -78,24 +79,28 @@ function App() {
   return (
     <main className="workspace">
       <header className="toolbar">
-        <div className="brand"><span className="brand-mark">O₂</span><div><strong>OxigenScript</strong><small>Intérprete académico</small></div></div>
+        <div className="brand"><span className="brand-mark">O₂</span><div><strong>OxigenNative</strong><small>Compilador ARM64 · QEMU</small></div></div>
         <div className="actions">
           <button onClick={newFile}>Nuevo</button>
           <button onClick={() => fileInput.current?.click()}>Abrir .oxs</button>
           <button onClick={saveFile}>Guardar</button>
-          <button className="run" onClick={execute} disabled={running}>{running ? 'Analizando…' : '▶ Analizar / Ejecutar'}</button>
+          <select aria-label="Modo de ejecución" value={mode} onChange={(event) => setMode(event.target.value as 'native' | 'interpreter')}><option value="native">ARM64 / QEMU</option><option value="interpreter">Intérprete P1</option></select>
+          {mode === 'native' && <button onClick={() => execute(false)} disabled={running}>Compilar</button>}
+          <button className="run" onClick={() => execute()} disabled={running}>{running ? 'Analizando…' : '▶ Ejecutar'}</button>
           <input ref={fileInput} type="file" accept=".oxs" hidden onChange={(event) => openFile(event.target.files?.[0])} />
         </div>
         <span className={`status ${backendStatus === 'conectado' ? 'online' : ''}`}>● Backend {backendStatus}</span>
       </header>
 
-      <section className="editor-panel">
+      <div className="source-grid"><section className="editor-panel">
         <div className="panel-title"><span>{fileName}</span><span>{source.split('\n').length} líneas</span></div>
         <div className="editor-wrap">
           <pre className="line-numbers" aria-hidden="true">{source.split('\n').map((_, index) => index + 1).join('\n')}</pre>
-          <textarea aria-label="Editor OxigenScript" spellCheck={false} value={source} onChange={(event) => setSource(event.target.value)} />
+          <textarea aria-label="Editor OxigenNative" spellCheck={false} onScroll={(event) => { const numbers = event.currentTarget.previousElementSibling; if (numbers) numbers.scrollTop = event.currentTarget.scrollTop }} value={source} onChange={(event) => setSource(event.target.value)} />
         </div>
       </section>
+      <article className="assembly-panel"><div className="panel-title"><span>Ensamblador ARM64</span><span>{result.success ? 'Sin errores registrados' : 'Revise los errores'}</span></div><pre className="assembly">{result.assembly || 'Compile el programa para ver el código generado.'}</pre></article></div>
+      <div className="timings">Análisis y generación: {((result.compilation_time || 0) * 1000).toFixed(1)} ms · Ensamblaje y enlace: {((result.build_time || 0) * 1000).toFixed(1)} ms · QEMU: {((result.execution_time || 0) * 1000).toFixed(1)} ms · Código de salida: {result.exit_code ?? '—'}</div>
 
       <section className="bottom-grid">
         <article className="console-panel">

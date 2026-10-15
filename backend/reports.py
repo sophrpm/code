@@ -54,8 +54,8 @@ def ast_to_dot(instructions):
 
 def dot_to_svg(dot_source):
     try:
-        process = subprocess.run(["dot", "-Tsvg"], input=dot_source, text=True, capture_output=True, check=False)
-    except OSError:
+        process = subprocess.run(["dot", "-Tsvg"], input=dot_source, text=True, capture_output=True, check=False, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
         return None
     if process.returncode != 0:
         return None

@@ -15,6 +15,14 @@ class Declaration(Node):
 
     # Ejecuta declaracion
     def execute(self, environment):
+        from ..expressions.array_literal import ArrayLiteral
+        from .array_declaration import ArrayDeclaration
+        if isinstance(self.expression, ArrayLiteral) and self.data_type in (None, Types.ARRAY):
+            info = getattr(self, 'type_info', {})
+            size = info.get('size', self.expression.repeat)
+            element = info.get('element_type')
+            declaration = ArrayDeclaration(self.name, self.expression.expressions, element, size, self.mutable, self.line, self.column, self.expression.repeat is not None)
+            return declaration.execute(environment)
         value = None
         value_type = Types.UNKNOWN
         final_type = self.data_type
@@ -60,6 +68,10 @@ class Declaration(Node):
                 struct_name = final_type
 
         symbol = Symbol(self.name, value, final_type, self.mutable, "variable", None, None, struct_name, self.line, self.column)
+
+        if final_type == Types.ARRAY and isinstance(value, list):
+            symbol.element_type = self.expression.get_element_type(environment) if hasattr(self.expression, 'get_element_type') else None
+            symbol.size = len(value)
 
         if not environment.save(symbol, allow_shadowing=True):
             self.report_error(environment, f"No se puede declarar '{self.name}' porque existe un simbolo no reemplazable con ese nombre")

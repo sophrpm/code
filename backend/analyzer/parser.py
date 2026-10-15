@@ -13,6 +13,7 @@ from ..interpreter.result import Result
 
 from ..ast.node import Node
 
+from ..ast.expressions.array_literal import ArrayLiteral
 from ..ast.expressions.literal import Literal
 from ..ast.expressions.identifier import Identifier
 from ..ast.expressions.arithmetic import Arithmetic
@@ -376,6 +377,7 @@ def p_type_array(p):
     """
 
     p[0] = make_type(Types.ARRAY, p[2]["data_type"], p[4])
+    p[0]["nested_type"] = p[2]
 
 
 #FUNCIONES
@@ -413,6 +415,7 @@ def p_function_declaration(p):
 
 
     p[0] = FunctionDeclaration(name, parameters, return_type, instructions, line, column)
+    p[0].return_info = return_type
 
 
 def p_parameter_list_opt(p):
@@ -454,6 +457,7 @@ def p_parameter(p):
         "data_type": p[3]["data_type"],
         "element_type": p[3]["element_type"],
         "size": p[3]["size"],
+        "type_info": p[3],
     }
 
 
@@ -462,7 +466,7 @@ def p_return_type(p):
     return_type_opt : ARROW type_spec
     """
 
-    p[0] = p[2]["data_type"]
+    p[0] = p[2] if p[2]["data_type"] == Types.ARRAY else p[2]["data_type"]
 
 
 def p_return_type_empty(p):
@@ -683,6 +687,7 @@ def p_declaration_type(p):
 
 
     p[0] = Declaration(p[2], expression, type_info["data_type"], info["mutable"], info["line"], info["column"])
+    p[0].type_info = type_info
 
 
 #let x = expresion
@@ -709,53 +714,7 @@ def p_declaration_typed_expression(p):
 
 
     p[0] = Declaration(p[2], p[6], type_info["data_type"], info["mutable"], info["line"], info["column"])
-
-
-#let x = [1, 2, 3]
-
-def p_declaration_array_values(p):
-    """
-    declaration : let_prefix ID ASSIGN array_values
-    """
-
-    info = p[1]
-    values = p[4]
-
-
-    p[0] = ArrayDeclaration(p[2], values, None, len(values), info["mutable"], info["line"], info["column"], False)
-
-
-#let x: [i32; 3] = [1, 2, 3]
-
-def p_declaration_typed_array(p):
-    """
-    declaration : let_prefix ID COLON type_spec ASSIGN array_values
-    """
-
-    info = p[1]
-    type_info = p[4]
-
-
-    if type_info["data_type"] != Types.ARRAY:
-
-        add_syntax_error("El tipo de una declaracion de arreglo debe tener la forma [tipo; tamanio]", info["line"], info["column"])
-
-
-    p[0] = ArrayDeclaration(p[2], p[6], type_info["element_type"], type_info["size"], info["mutable"], info["line"], info["column"], False)
-
-
-#let x = [valor; cantidad]
-
-def p_declaration_array_repeat(p):
-    """
-    declaration : let_prefix ID ASSIGN array_repeat
-    """
-
-    info = p[1]
-    repeat = p[4]
-
-
-    p[0] = ArrayDeclaration(p[2], [repeat["expression"]], None, repeat["size"], info["mutable"], info["line"], info["column"], True)
+    p[0].type_info = type_info
 
 
 #let parte = &numeros[1..4]
@@ -816,6 +775,21 @@ def p_value_expression_list_trailing(p):
     """
 
     p[0] = p[1]
+
+
+def p_primary_array(p):
+    """primary : array_values"""
+    p[0] = ArrayLiteral(p[1], p.lineno(1), get_column(p.lexpos(1)))
+
+
+def p_primary_array_repeat(p):
+    """primary : array_repeat"""
+    p[0] = ArrayLiteral([p[1]["expression"]], p.lineno(1), get_column(p.lexpos(1)), p[1]["size"])
+
+
+def p_array_values_empty(p):
+    """array_values : LBRACKET RBRACKET"""
+    p[0] = []
 
 
 #SLICE

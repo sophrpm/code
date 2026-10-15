@@ -15,11 +15,15 @@ def health():
 
 
 @app.post("/api/execute")
+@app.post("/api/compile")
+@app.post("/api/interpret")
 def execute():
     data = request.get_json(silent=True)
     if not isinstance(data, dict) or not isinstance(data.get("source"), str):
         return jsonify({"success": False, "message": "Se requiere el campo source como texto"}), 400
-    return jsonify(service.execute(data["source"]))
+    if len(data["source"]) > 200000:
+        return jsonify({"success": False, "message": "El código supera 200000 caracteres"}), 413
+    return jsonify(service.execute(data["source"], run=request.path != '/api/compile', mode='interpreter' if request.path == '/api/interpret' else 'native'))
 
 
 @app.post("/api/files")
@@ -59,4 +63,4 @@ def ast_svg_report():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=2611, debug=True)
+    app.run(host="127.0.0.1", port=2611, debug=False)
